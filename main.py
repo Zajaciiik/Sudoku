@@ -106,8 +106,12 @@ for i in range(len(field.tiles)):
         print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
     print()
 
-
-
+#tato fukncia zisti aky stav je dlazdica a vrati strin cisla
+def writeNumber(i, x):
+    font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
+    stav = field.getTile(i, x).getTileState().value
+    text = font.render('{}'.format(stav), True, (0, 0, 0))
+    return text
 
 #HRA
 pygame.init()
@@ -122,17 +126,22 @@ screen.fill(BLUE)
 
 #drawMap
 def drawMap():
-    font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
-    text = font.render('9', True, (0, 0, 0))
+    posX = 0
+    posY = 0
 
     for i in range(9):
-         for x in range(9):
+        for x in range(9):
             #draw Map
             if field.getTile(i, x).getTileState() != TileState.NONE:
                 pygame.draw.rect(screen, (200, 200, 100), [x * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE])
-                screen.blit(text, [i, x])
+                screen.blit(writeNumber(i,x), [posY, posX])
+
+
             else:
                 pygame.draw.rect(screen, (200, 200, 200), [x * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE])
+            posY += TILE_SIZE
+        posY = 0
+        posX += TILE_SIZE
 
 # gameState = GameState.PLAYING
 run = True
