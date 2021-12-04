@@ -97,6 +97,33 @@ class Field:
                 self.__addState(sudoku, i, x)
 
 
+#Depth First Search algoritmus
+
+#funkcia ktora zisti ci na toto miesto mozes jebnut cislo
+def isSafe(board, row, column, number):
+
+    #kontrola ci najdem rovnake cislo v rovnakom riadku
+    for x in range(9):
+        if(board[row][x] == number):
+            return False
+
+    #kontrola ci najdem rovnake cislo v rovnakom stlpci, vrati false ak niekde take cislo nasiel
+    for x in range(9):
+        if(board[x][column] == number):
+            return False
+
+    #kontrola ci neni to iste cislo v stvorci 3x3
+    startRow = row - row % 3
+    startColumn = column - column % 3
+    for i in range(3):
+        for x in range(3):
+            if(board[i + startRow][x + startColumn] == number):
+                return False
+
+    #presli vsetky kontrolky
+    return True
+
+
 field = Field()
 print("GOOD LUCK")
 print()
