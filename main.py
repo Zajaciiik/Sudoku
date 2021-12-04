@@ -3,9 +3,8 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import sys, pygame
+import sys, pygame, json
 from enum import Enum
-import numpy as np
 
 POCITADLO = 0
 
@@ -45,9 +44,9 @@ class Field:
     tiles = [[Tile() for x in range(9)] for y in range(9)]
 
     #konstruktor
-    def __init__(self):
+    def __init__(self, fieldId):
         self.game = "Sudoku"
-        self.__addNumbers()
+        self.__addNumbers(fieldId)
 
 
     def getTile(self, row, column):
@@ -79,19 +78,12 @@ class Field:
 
 
     #pridanie cisla na zaciatok
-    def __addNumbers(self):
-        sudoku = [
-            [8,0,0,9,3,0,0,0,2],
-            [0,0,9,0,0,0,0,4,0],
-            [7,0,2,1,0,0,9,6,0],
-            [2,0,0,0,0,0,0,9,0],
-            [0,6,0,0,0,0,0,7,0],
-            [0,7,0,0,0,6,0,0,5],
-            [0,2,7,0,0,8,4,0,6],
-            [0,3,0,0,0,0,5,0,0],
-            [5,0,0,0,6,2,0,0,8]
-        ]
+    def __addNumbers(self, fieldId):
 
+        with open('games.json', 'r') as j:
+            json_data = json.load(j)
+            sudoku = json_data[fieldId]["field"]
+        
         for i in range(9):
             for x in range(9):
                 self.__addState(sudoku, i, x)
@@ -154,46 +146,13 @@ def solve(board, row, column, pocitadlo):
     return False
 
 
-
-
-
-
-field = Field()
+field = Field(9)
 print("GOOD LUCK")
 print()
 
 for i in range(len(field.tiles)):
     for x in range(len(field.tiles)):
         print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
-    print()
-# sudoku = [
-#             [8,4,6,9,3,0,0,0,2],
-#             [3,1,9,6,2,5,0,4,0],
-#             [7,5,2,1,8,4,9,6,0],
-#             [2,8,5,7,1,3,6,9,4],
-#             [4,6,3,8,5,9,2,7,1],
-#             [9,7,1,2,4,6,3,8,5],
-#             [0,2,7,0,0,8,4,0,6],
-#             [0,3,0,0,0,0,5,0,0],
-#             [5,9,4,3,6,2,0,0,8]
-#         ]
-sudoku = [
-            [8,0,0,9,3,0,0,0,2],
-            [0,0,9,0,0,0,0,4,0],
-            [7,0,2,1,0,0,9,6,0],
-            [2,0,0,0,0,0,0,9,0],
-            [0,6,0,0,0,0,0,7,0],
-            [0,7,0,0,0,6,0,0,5],
-            [0,2,7,0,0,8,4,0,6],
-            [0,3,0,0,0,0,5,0,0],
-            [5,0,0,0,6,2,0,0,8]
-        ]
-solve(sudoku, 0, 0)
-
-print("Vyriesene: ")
-for i in range(9):
-    for x in range(9):
-        print(sudoku[i][x], end=" ")
     print()
 
 
@@ -226,7 +185,6 @@ def drawMap():
             if field.getTile(i, x).getTileState() != TileState.NONE:
                 pygame.draw.rect(screen, (200, 200, 100), [x * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE])
                 screen.blit(writeNumber(i,x), [posY, posX])
-
 
             else:
                 pygame.draw.rect(screen, (200, 200, 200), [x * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE])
