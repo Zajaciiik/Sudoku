@@ -123,7 +123,7 @@ def isSafe(board, row, column, number):
     #presli vsetky kontrolky
     return True
 
-def solve(board, row, column, pocitadlo):
+def solve(board, row, column):
 
 
     # pre vyhnutie zlemu backtrackingu
@@ -156,8 +156,6 @@ def solve(board, row, column, pocitadlo):
 
 
 
-
-
 field = Field()
 print("GOOD LUCK")
 print()
@@ -166,17 +164,8 @@ for i in range(len(field.tiles)):
     for x in range(len(field.tiles)):
         print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
     print()
-# sudoku = [
-#             [8,4,6,9,3,0,0,0,2],
-#             [3,1,9,6,2,5,0,4,0],
-#             [7,5,2,1,8,4,9,6,0],
-#             [2,8,5,7,1,3,6,9,4],
-#             [4,6,3,8,5,9,2,7,1],
-#             [9,7,1,2,4,6,3,8,5],
-#             [0,2,7,0,0,8,4,0,6],
-#             [0,3,0,0,0,0,5,0,0],
-#             [5,9,4,3,6,2,0,0,8]
-#         ]
+
+print("SOLVED")
 sudoku = [
             [8,0,0,9,3,0,0,0,2],
             [0,0,9,0,0,0,0,4,0],
@@ -189,15 +178,20 @@ sudoku = [
             [5,0,0,0,6,2,0,0,8]
         ]
 solve(sudoku, 0, 0)
-
-print("Vyriesene: ")
 for i in range(9):
     for x in range(9):
         print(sudoku[i][x], end=" ")
     print()
 
 
-#tato fukncia zisti aky stav je dlazdica a vrati string cisla
+
+# #tato fukncia zisti aky stav je dlazdica a vrati strin cisla
+# def writeNumber(i, x):
+#     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
+#     stav = field.getTile(i, x).getTileState().value
+#     text = font.render('{}'.format(stav), True, (0, 0, 0))
+#     return text
+#tato fukncia zisti aky stav je dlazdica a vrati strin cisla
 def writeNumber(i, x):
     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
     stav = field.getTile(i, x).getTileState().value
@@ -234,6 +228,8 @@ def drawMap():
         posY = 0
         posX += TILE_SIZE
 
+
+
 # gameState = GameState.PLAYING
 run = True
 while (run):
@@ -247,6 +243,14 @@ while (run):
 
     drawMap()
     pygame.display.update()
+
+
+
+
+
+
+
+
 
 
 
