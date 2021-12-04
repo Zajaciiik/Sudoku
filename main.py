@@ -197,7 +197,7 @@ for i in range(9):
     print()
 
 
-#tato fukncia zisti aky stav je dlazdica a vrati strin cisla
+#tato fukncia zisti aky stav je dlazdica a vrati string cisla
 def writeNumber(i, x):
     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
     stav = field.getTile(i, x).getTileState().value
