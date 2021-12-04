@@ -7,7 +7,7 @@ import sys, pygame
 from enum import Enum
 import numpy as np
 
-
+POCITADLO = 0
 
 #hra sa bude hrat kym je gamestate = Playing
 class GameState(Enum):
@@ -123,6 +123,40 @@ def isSafe(board, row, column, number):
     #presli vsetky kontrolky
     return True
 
+def solve(board, row, column, pocitadlo):
+
+
+    # pre vyhnutie zlemu backtrackingu
+    if (row == 8 and column == 9):
+        return True
+
+    #prejdenie na dalsi riadok ked dosiahnem posledny stlpec
+    if (column == 9):
+        column = 0
+        row += 1
+
+    #prechod na dalsie cislo ak tam uz je nejake zvolene
+    if(board[row][column] > 0):
+        return solve(board, row, column+1)
+
+    for number in range(1, 10, 1):
+        if(isSafe(board, row, column, number)):
+            #nahradenie 0 za zvolene cislo
+            board[row][column] = number
+
+            #skusanie dalsej moznosti
+            if(solve(board, row, column + 1)):
+                return True
+        #ak take cislo nemoze byt tak tam ide 0
+        board[row][column] = 0
+
+
+    return False
+
+
+
+
+
 
 field = Field()
 print("GOOD LUCK")
@@ -132,6 +166,36 @@ for i in range(len(field.tiles)):
     for x in range(len(field.tiles)):
         print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
     print()
+# sudoku = [
+#             [8,4,6,9,3,0,0,0,2],
+#             [3,1,9,6,2,5,0,4,0],
+#             [7,5,2,1,8,4,9,6,0],
+#             [2,8,5,7,1,3,6,9,4],
+#             [4,6,3,8,5,9,2,7,1],
+#             [9,7,1,2,4,6,3,8,5],
+#             [0,2,7,0,0,8,4,0,6],
+#             [0,3,0,0,0,0,5,0,0],
+#             [5,9,4,3,6,2,0,0,8]
+#         ]
+sudoku = [
+            [8,0,0,9,3,0,0,0,2],
+            [0,0,9,0,0,0,0,4,0],
+            [7,0,2,1,0,0,9,6,0],
+            [2,0,0,0,0,0,0,9,0],
+            [0,6,0,0,0,0,0,7,0],
+            [0,7,0,0,0,6,0,0,5],
+            [0,2,7,0,0,8,4,0,6],
+            [0,3,0,0,0,0,5,0,0],
+            [5,0,0,0,6,2,0,0,8]
+        ]
+solve(sudoku, 0, 0)
+
+print("Vyriesene: ")
+for i in range(9):
+    for x in range(9):
+        print(sudoku[i][x], end=" ")
+    print()
+
 
 #tato fukncia zisti aky stav je dlazdica a vrati string cisla
 def writeNumber(i, x):
