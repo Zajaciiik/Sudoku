@@ -2,12 +2,12 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
+import itertools
 import sys, pygame
 from enum import Enum
 import numpy as np
 
-POCITADLO = 0
+
 
 #hra sa bude hrat kym je gamestate = Playing
 class GameState(Enum):
@@ -43,11 +43,22 @@ class Tile:
 
 class Field:
     tiles = [[Tile() for x in range(9)] for y in range(9)]
+    sudoku = [
+        [8, 4, 6, 9, 3, 7, 1, 5, 2],
+        [3, 0, 9, 6, 2, 5, 8, 4, 7],
+        [7, 5, 2, 1, 8, 4, 9, 6, 3],
+        [2, 8, 5, 7, 1, 3, 6, 9, 4],
+        [4, 6, 3, 8, 5, 9, 2, 7, 1],
+        [9, 7, 1, 2, 4, 6, 3, 8, 5],
+        [1, 2, 7, 5, 9, 8, 4, 3, 6],
+        [6, 3, 8, 4, 7, 1, 5, 2, 9],
+        [5, 9, 4, 3, 6, 2, 7, 0, 8]
+    ]
 
     #konstruktor
     def __init__(self):
         self.game = "Sudoku"
-        self.__addNumbers()
+        self.__addNumbers(self.sudoku)
 
 
     def getTile(self, row, column):
@@ -79,18 +90,18 @@ class Field:
 
 
     #pridanie cisla na zaciatok
-    def __addNumbers(self):
-        sudoku = [
-            [8,0,0,9,3,0,0,0,2],
-            [0,0,9,0,0,0,0,4,0],
-            [7,0,2,1,0,0,9,6,0],
-            [2,0,0,0,0,0,0,9,0],
-            [0,6,0,0,0,0,0,7,0],
-            [0,7,0,0,0,6,0,0,5],
-            [0,2,7,0,0,8,4,0,6],
-            [0,3,0,0,0,0,5,0,0],
-            [5,0,0,0,6,2,0,0,8]
-        ]
+    def __addNumbers(self, sudoku):
+        # sudoku = [
+        #     [8,0,0,9,3,0,0,0,2],
+        #     [0,0,9,0,0,0,0,4,0],
+        #     [7,0,2,1,0,0,9,6,0],
+        #     [2,0,0,0,0,0,0,9,0],
+        #     [0,6,0,0,0,0,0,7,0],
+        #     [0,7,0,0,0,6,0,0,5],
+        #     [0,2,7,0,0,8,4,0,6],
+        #     [0,3,0,0,0,0,5,0,0],
+        #     [5,0,0,0,6,2,0,0,8]
+        # ]
 
         for i in range(9):
             for x in range(9):
@@ -141,7 +152,6 @@ def solve(board, row, column):
 
     for number in range(1, 10, 1):
         if(isSafe(board, row, column, number)):
-            #nahradenie 0 za zvolene cislo
             board[row][column] = number
 
             #skusanie dalsej moznosti
@@ -160,38 +170,139 @@ field = Field()
 print("GOOD LUCK")
 print()
 
-for i in range(len(field.tiles)):
-    for x in range(len(field.tiles)):
-        print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
-    print()
+# for i in range(len(field.tiles)):
+#     for x in range(len(field.tiles)):
+#         print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
+#     print()
+#
+# print("SOLVED")
+# sudoku = [
+#             [8,0,0,9,3,0,0,0,2],
+#             [0,0,9,0,0,0,0,4,0],
+#             [7,0,2,1,0,0,9,6,0],
+#             [2,0,0,0,0,0,0,9,0],
+#             [0,6,0,0,0,0,0,7,0],
+#             [0,7,0,0,0,6,0,0,5],
+#             [0,2,7,0,0,8,4,0,6],
+#             [0,3,0,0,0,0,5,0,0],
+#             [5,0,0,0,6,2,0,0,8]
+#         ]
+# solve(sudoku, 0, 0)
+#solve(field.sudoku, 0, 0)
+# for i in range(9):
+#     for x in range(9):
+#         print(sudoku[i][x], end=" ")
+#     print()
 
-print("SOLVED")
-sudoku = [
-            [8,0,0,9,3,0,0,0,2],
-            [0,0,9,0,0,0,0,4,0],
-            [7,0,2,1,0,0,9,6,0],
-            [2,0,0,0,0,0,0,9,0],
-            [0,6,0,0,0,0,0,7,0],
-            [0,7,0,0,0,6,0,0,5],
-            [0,2,7,0,0,8,4,0,6],
-            [0,3,0,0,0,0,5,0,0],
-            [5,0,0,0,6,2,0,0,8]
-        ]
-solve(sudoku, 0, 0)
-for i in range(9):
-    for x in range(9):
-        print(sudoku[i][x], end=" ")
-    print()
+# ###############################################
+#    DFS SOLVER POUZITIE
+# ###############################################
+print()
+#funkcia ktora prida 1-tky do zoznamu ale stavy ostavacu, cize
+#na cisle jedna je stav dlazdice none
+def addNumberDfs():
+    for i in range(9):
+        for x in range(9):
+            if(field.sudoku[i][x] == 0):
+                field.sudoku[i][x] = 1
+
+
+def isSolved():
+    for i in range(9):
+        for s in range(9):
+            if field.sudoku[i].count(s) > 1:
+                return False
+    return True
+
+
+def solveDfs(row, column):
+    #aby to neslo mimo pola
+    if(row == 0 and column == 1):
+        return True
+
+    #ak som na zaciatku tak ist o riadok vyssie
+    if(column == -1):
+        column = 8
+        row -= 1
+
+    if(field.getTile(row, column).getTileState() != TileState.NONE):
+        return solveDfs(row, column - 1)
+
+#funkcia ktora vrati zoznamy iba cisel co sa budu menit
+def getNumbers():
+    pocet = 0
+    zoznam = []
+    for i in range(9):
+        row = []
+        cislo = 1
+        for x in range(9):
+            if(field.getTile(i, x).getTileState() == TileState.NONE):
+                for y in range(9):
+                    row.append(cislo)
+                    cislo += 1
+                pocet += 1
+                #print(row)
+                #print("pocet", pocet)
+                zoznam.append(row)
+            cislo = 1
+            row = []
+
+    #print("Kombinacie cisel:", zoznam)
+    return zoznam
 
 
 
-# #tato fukncia zisti aky stav je dlazdica a vrati strin cisla
-# def writeNumber(i, x):
-#     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
-#     stav = field.getTile(i, x).getTileState().value
-#     text = font.render('{}'.format(stav), True, (0, 0, 0))
-#     return text
-#tato fukncia zisti aky stav je dlazdica a vrati strin cisla
+#funkcia ktora tie cisla bude vkladat do fieldu a skontroluje ich
+def combineNumbers():
+
+    for list in itertools.product(*getNumbers()):
+        pozicia = 0
+        for i in range(9):
+            for x in range(9):
+                if(field.getTile(i, x).getTileState() == TileState.NONE):
+                    field.sudoku[i][x] = list[pozicia]
+                    pozicia += 1
+
+        print()
+        print("Solved:", isSolved())
+        for i in range(len(field.tiles)):
+            for x in range(len(field.tiles)):
+                print(field.sudoku[i][x], end=" ")
+            print()
+
+
+
+# solve(field.sudoku, 0, 0)
+addNumberDfs()
+combineNumbers()
+
+
+
+
+
+
+# for i in range(len(field.tiles)):
+#     for x in range(len(field.tiles)):
+#         print(field.sudoku[i][x], end=" ")
+#     print()
+#
+# print("Stavy ostavaju")
+# for i in range(len(field.tiles)):
+#     for x in range(len(field.tiles)):
+#         print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
+#     print()
+
+
+
+
+
+
+
+
+
+
+
+#PYGAME
 def writeNumber(i, x):
     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
     stav = field.getTile(i, x).getTileState().value
