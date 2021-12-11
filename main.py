@@ -3,6 +3,8 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import itertools
+import math
+import random
 import sys, pygame
 from enum import Enum
 import numpy as np
@@ -45,9 +47,9 @@ class Field:
     tiles = [[Tile() for x in range(9)] for y in range(9)]
     sudoku = [
         [8, 4, 6, 9, 3, 7, 1, 5, 2],
-        [3, 0, 9, 6, 2, 5, 8, 4, 7],
-        [7, 5, 2, 1, 8, 4, 9, 6, 3],
-        [2, 8, 5, 7, 1, 3, 6, 9, 4],
+        [3, 0, 0, 6, 2, 5, 8, 4, 7],
+        [7, 0, 2, 1, 8, 4, 9, 6, 3],
+        [2, 0, 0, 7, 1, 3, 6, 9, 4],
         [4, 6, 3, 8, 5, 9, 2, 7, 1],
         [9, 7, 1, 2, 4, 6, 3, 8, 5],
         [1, 2, 7, 5, 9, 8, 4, 3, 6],
@@ -108,7 +110,6 @@ class Field:
                 self.__addState(sudoku, i, x)
 
 
-#Depth First Search algoritmus
 
 #funkcia ktora zisti ci na toto miesto mozes jebnut cislo
 def isSafe(board, row, column, number):
@@ -252,6 +253,8 @@ def getNumbers():
 
 
 
+
+
 #funkcia ktora tie cisla bude vkladat do fieldu a skontroluje ich
 def combineNumbers():
 
@@ -265,42 +268,118 @@ def combineNumbers():
 
         print()
         print("Solved:", isSolved())
-        for i in range(len(field.tiles)):
-            for x in range(len(field.tiles)):
-                print(field.sudoku[i][x], end=" ")
-            print()
+        if(isSolved()):
+            for i in range(len(field.tiles)):
+                for x in range(len(field.tiles)):
+                    print(field.sudoku[i][x], end=" ")
+                print()
 
 
 
-# solve(field.sudoku, 0, 0)
-addNumberDfs()
-combineNumbers()
+#addNumberDfs()
+#combineNumbers()
 
 
+#FORWARD CHECKING
+#funkcia ktora zisti ci na toto miesto mozes jebnut cislo a aj ci existuju volne
+#cisla do stvorcov
+def isSafeForwardCheck(board, row, column, number):
+    # kontrola ci najdem rovnake cislo v rovnakom riadku
+    for x in range(9):
+        if (board[row][x] == number):
+            return False
+
+    # kontrola ci najdem rovnake cislo v rovnakom stlpci, vrati false ak niekde take cislo nasiel
+    for x in range(9):
+        if (board[x][column] == number):
+            return False
+
+    # kontrola ci neni to iste cislo v stvorci 3x3
+    startRow = row - row % 3
+    startColumn = column - column % 3
+    for i in range(3):
+        for x in range(3):
+            if (board[i + startRow][x + startColumn] == number):
+                return False
+
+    #kontrola prazdnych policok vrati false ak niekde nie je ziadna moznost
+    getOptions(board)
+
+    # presli vsetky kontrolky
+    return True
 
 
+def getPossibleNumbers(row, column):
+    zoznam = [1,2,3,4,5,6,7,8,9]
+
+    # kontrola ci najdem rovnake cislo v rovnakom riadku
+    for x in range(9):
+        if(field.sudoku[row][x] in zoznam):
+            zoznam.remove(field.sudoku[row][x])
+
+    # kontrola ci najdem rovnake cislo v rovnakom stlpci, vrati false ak niekde take cislo nasiel
+    for x in range(9):
+        if (field.sudoku[x][column] in zoznam):
+            zoznam.remove(field.sudoku[x][column])
+    return zoznam
+
+def getOptions(board):
+    zoznam = []
+    for i in range(9):
+        row = []
+        cislo = 1
+        for x in range(9):
+            if(board[i][x] == 0):
+                print("Moznosti:", getPossibleNumbers(i, x))
+                zoznam.append(getPossibleNumbers(i, x))
+    for i in range(len(zoznam)):
+        if(len(zoznam[i]) == 0):
+            return False
+    return True
 
 
-# for i in range(len(field.tiles)):
-#     for x in range(len(field.tiles)):
-#         print(field.sudoku[i][x], end=" ")
-#     print()
-#
+def solveForwardChecking(board, row, column):
+
+
+    # pre vyhnutie zlemu backtrackingu
+    if (row == 8 and column == 9):
+        return True
+
+    #prejdenie na dalsi riadok ked dosiahnem posledny stlpec
+    if (column == 9):
+        column = 0
+        row += 1
+
+    #prechod na dalsie cislo ak tam uz je nejake zvolene
+    if(board[row][column] > 0):
+        return solve(board, row, column+1)
+
+    for number in range(1, 10, 1):
+        if(isSafeForwardCheck(board, row, column, number)):
+            board[row][column] = number
+
+            #skusanie dalsej moznosti
+            if(solveForwardChecking(board, row, column + 1)):
+                return True
+        #ak take cislo nemoze byt tak tam ide 0
+        board[row][column] = 0
+
+
+    return False
+
+solveForwardChecking(field.sudoku, 0, 0)
+
+
+for i in range(len(field.tiles)):
+    for x in range(len(field.tiles)):
+        print(field.sudoku[i][x], end=" ")
+    print()
+
 # print("Stavy ostavaju")
 # for i in range(len(field.tiles)):
 #     for x in range(len(field.tiles)):
 #         print("{}".format(field.getTile(i, x).getTileState().value), end=" ")
 #     print()
-
-
-
-
-
-
-
-
-
-
 
 #PYGAME
 def writeNumber(i, x):
