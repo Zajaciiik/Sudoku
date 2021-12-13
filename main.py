@@ -33,16 +33,24 @@ class Tile:
         self.state = state
 
 class Field:
-    tiles = [[Tile() for x in range(9)] for y in range(9)]
+    tiles = []
     sudoku = []
     sudokuId = 0
 
     def __init__(self, id):
         self.game = "Sudoku"
-        if id > 10:
+
+        if id == 11:
             self.sudokuId = 0
         else:
             self.sudokuId = id
+
+        print(self.sudokuId)
+        
+        if (self.sudokuId == 0):
+            self.tiles = [[Tile() for x in range(4)] for y in range(4)]
+        else:
+            self.tiles = [[Tile() for x in range(9)] for y in range(9)]
         self.__addNumbers()
 
     def getTile(self, row, column):
@@ -76,9 +84,10 @@ class Field:
             json_data = json.load(j)
             self.sudoku = json_data[self.sudokuId]["field"]
 
-        for i in range(9):
-            for x in range(9):
+        for i in range(len(self.tiles)):
+            for x in range(len(self.tiles)):
                 self.addState(self.sudoku, i, x)
+
 
 def writeNumber(i, x):
     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
@@ -99,8 +108,8 @@ def drawMap():
     posX = 0
     posY = 0
 
-    for i in range(9):
-        for x in range(9):
+    for i in range(len(field.sudoku)):
+        for x in range(len(field.sudoku)):
             if field.getTile(i, x).getTileState() != TileState.NONE:
                 pygame.draw.rect(screen, (200, 200, 100), [x * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE])
                 screen.blit(writeNumber(i,x), [posY + 10, posX])
@@ -122,7 +131,7 @@ def drawMap():
     screen.blit(writeText('Back'), [13*TILE_SIZE, 7.1*TILE_SIZE])
 
 #PYGAME INIT AND SETTINGS
-field = Field(1)
+field = Field(0)
 run = True
 
 pygame.init()
@@ -142,32 +151,42 @@ solveBacktrackRect = pygame.Rect(12.2*TILE_SIZE, 7*TILE_SIZE, 3*TILE_SIZE, TILE_
 #BACKTRACKING 
 def isSafe(board, row, column, number):
     #kontrola ci najdem rovnake cislo v rovnakom riadku
-    for x in range(9):
+    for x in range(len(field.sudoku)):
         if(board.getTile(row,x).getTileState() == number):
             return False
 
     #kontrola ci najdem rovnake cislo v rovnakom stlpci, vrati false ak niekde take cislo nasiel
-    for x in range(9):
+    for x in range(len(field.sudoku)):
         if(board.getTile(x,column).getTileState() == number):
             return False
 
     #kontrola ci neni to iste cislo v stvorci 3x3
-    startRow = row - row % 3
-    startColumn = column - column % 3
-    for i in range(3):
-        for x in range(3):
+    stvorec = 2
+    if (len(field.sudoku) > 4):
+        stvorec = 3
+    startRow = row - row % stvorec
+    startColumn = column - column % stvorec
+
+    for i in range(stvorec):
+        for x in range(stvorec):
             if(board.getTile(i + startRow,x + startColumn).getTileState() == number):
                 return False
 
     return True
 
 def solveBacktrack(board, row, column):
+    endRow = 3
+    endColumn = 4
+    if (len(field.sudoku) > 4):
+        endRow = 8
+        endColumn = 9
+
     # pre vyhnutie zlemu backtrackingu
-    if (row == 8 and column == 9):
+    if (row == endRow and column == endColumn):
         return True
 
     #prejdenie na dalsi riadok ked dosiahnem posledny stlpec
-    if (column == 9):
+    if (column == endColumn):
         column = 0
         row += 1
 
@@ -175,7 +194,7 @@ def solveBacktrack(board, row, column):
     if(board.getTile(row,column).getTileState() > 0):
         return solveBacktrack(board, row, column+1)
 
-    for number in range(1, 10, 1):
+    for number in range(1, endColumn + 1, 1):
         if(isSafe(board, row, column, number)):
             board.getTile(row,column).setTileState(number)
 
@@ -353,6 +372,7 @@ while (run):
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             if newFieldButtonRect.collidepoint(pos):
+                screen.fill(WHITE)
                 setNewMap()
             if solveDFSRect.collidepoint(pos):
                 tic = time.perf_counter()
