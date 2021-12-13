@@ -43,7 +43,7 @@ class Field:
             self.sudokuId = 0
         else:
             self.sudokuId = id
-        if (id == 0):
+        if (id <= 1):
             self.tiles = [[Tile() for x in range(4)] for y in range(4)]
         else:
             self.tiles = [[Tile() for x in range(9)] for y in range(9)]
@@ -204,15 +204,15 @@ def solveBacktrack(board, row, column):
 
 # DFS 
 def isSolved():
-    for i in range(9):
-        for s in range(9):
+    for i in range(len(field.sudoku)):
+        for s in range(len(field.sudoku)):
             if field.sudoku[i].count(s + 1) > 1:
                 return False
     
-    for i in range(9):
+    for i in range(len(field.sudoku)):
         elements = set()
 
-        for s in range(9):
+        for s in range(len(field.sudoku)):
             if field.sudoku[s][i] not in elements:
                 elements.add(field.sudoku[s][i])
             else: return False
@@ -222,12 +222,12 @@ def isSolved():
 def getNumbers():
     pocet = 0
     zoznam = []
-    for i in range(9):
+    for i in range(len(field.sudoku)):
         row = []
         cislo = 1
-        for x in range(9):
+        for x in range(len(field.sudoku)):
             if(field.getTile(i, x).getTileState() == TileState.NONE):
-                for y in range(9):
+                for y in range(len(field.sudoku)):
                     row.append(cislo)
                     cislo += 1
                 pocet += 1
@@ -240,31 +240,36 @@ def getNumbers():
 def combineNumbers():
     for list in itertools.product(*getNumbers()):
         pozicia = 0
-        for i in range(9):
-            for x in range(9):
+        for i in range(len(field.sudoku)):
+            for x in range(len(field.sudoku)):
                 if(field.getTile(i, x).getTileState() == TileState.NONE):
                     field.sudoku[i][x] = list[pozicia]
                     pozicia += 1
 
         if(isSolved()): 
-            for i in range(9):
-                for x in range(9):
+            for i in range(len(field.sudoku)):
+                for x in range(len(field.sudoku)):
                     field.addState(field.sudoku, i, x)
 
 #FORWARD CHECKING
 def isSafeForwardCheck(board, row, column, number):
-    for x in range(9):
+    for x in range(len(field.sudoku)):
         if (board[row][x] == number):
             return False
 
-    for x in range(9):
+    for x in range(len(field.sudoku)):
         if (board[x][column] == number):
             return False
 
-    startRow = row - row % 3
-    startColumn = column - column % 3
-    for i in range(3):
-        for x in range(3):
+    # kontrola ci neni to iste cislo v stvorci 3x3
+    stvorec = 2
+    if (len(field.sudoku) > 4):
+        stvorec = 3
+    startRow = row - row % stvorec
+    startColumn = column - column % stvorec
+
+    for i in range(stvorec):
+        for x in range(stvorec):
             if (board[i + startRow][x + startColumn] == number):
                 return False
 
@@ -273,21 +278,23 @@ def isSafeForwardCheck(board, row, column, number):
 
 
 def getPossibleNumbers(row, column):
-    zoznam = [1,2,3,4,5,6,7,8,9]
+    zoznam = list(range(len(field.sudoku)))
 
-    for x in range(9):
+    #zoznam = [1,2,3,4,5,6,7,8,9]
+
+    for x in range(len(field.sudoku)):
         if(field.sudoku[row][x] in zoznam):
             zoznam.remove(field.sudoku[row][x])
 
-    for x in range(9):
+    for x in range(len(field.sudoku)):
         if (field.sudoku[x][column] in zoznam):
             zoznam.remove(field.sudoku[x][column])
     return zoznam
 
 def getOptions(board):
     zoznam = []
-    for i in range(9):
-        for x in range(9):
+    for i in range(len(field.sudoku)):
+        for x in range(len(field.sudoku)):
             if(board[i][x] == 0):
                 zoznam.append(getPossibleNumbers(i, x))
     for i in range(len(zoznam)):
@@ -296,35 +303,47 @@ def getOptions(board):
     return True
 
 def isSafeOBJ(board, row, column, number):
-    for x in range(9):
+    for x in range(len(field.sudoku)):
         if(board[row][x] == number):
             return False
 
-    for x in range(9):
+    for x in range(len(field.sudoku)):
         if(board[x][column] == number):
             return False
 
-    startRow = row - row % 3
-    startColumn = column - column % 3
-    for i in range(3):
-        for x in range(3):
+    # kontrola ci neni to iste cislo v stvorci 3x3
+    stvorec = 2
+    if (len(field.sudoku) > 4):
+        stvorec = 3
+    startRow = row - row % stvorec
+    startColumn = column - column % stvorec
+
+    for i in range(stvorec):
+        for x in range(stvorec):
             if(board[i + startRow][x + startColumn] == number):
                 return False
 
     return True
 
 def solve(board, row, column):
-    if (row == 8 and column == 9):
+    endRow = 3
+    endColumn = 4
+    if (len(field.sudoku) > 4):
+        endRow = 8
+        endColumn = 9
+
+
+    if (row == endRow and column == endColumn):
         return True
 
-    if (column == 9):
+    if (column == endColumn):
         column = 0
         row += 1
 
     if(board[row][column] > 0):
         return solve(board, row, column+1)
 
-    for number in range(1, 10, 1):
+    for number in range(1, endColumn + 1, 1):
         if(isSafeOBJ(board, row, column, number)):
             board[row][column] = number
 
@@ -336,17 +355,25 @@ def solve(board, row, column):
 
 
 def solveForwardChecking(board, row, column):
-    if (row == 8 and column == 9):
+    endRow = 3
+    endColumn = 4
+    if (len(field.sudoku) > 4):
+        endRow = 8
+        endColumn = 9
+
+    # pre vyhnutie zlemu backtrackingu
+    if (row == endRow and column == endColumn):
         return True
 
-    if (column == 9):
+    # prejdenie na dalsi riadok ked dosiahnem posledny stlpec
+    if (column == endColumn):
         column = 0
         row += 1
 
     if(board[row][column] > 0):
         return solve(board, row, column+1)
 
-    for number in range(1, 10, 1):
+    for number in range(1, endColumn + 1, 1):
         if(isSafeForwardCheck(board, row, column, number)):
             board[row][column] = number
 
@@ -378,8 +405,8 @@ while (run):
                 solveForwardChecking(field.sudoku, 0, 0)
                 toc = time.perf_counter()
                 print(f"Downloaded the tutorial in {toc - tic:0.8f} seconds")
-                for i in range(9):
-                    for x in range(9):
+                for i in range(len(field.sudoku)):
+                    for x in range(len(field.sudoku)):
                         field.addState(field.sudoku, i, x)
 
             if solveBacktrackRect.collidepoint(pos):
