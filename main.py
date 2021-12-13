@@ -39,11 +39,12 @@ class Field:
 
     def __init__(self, id):
         self.game = "Sudoku"
-        if id > 10:
+
+        if id == 13:
             self.sudokuId = 0
         else:
             self.sudokuId = id
-        if (id <= 1):
+        if (self.sudokuId <= 2):
             self.tiles = [[Tile() for x in range(4)] for y in range(4)]
         else:
             self.tiles = [[Tile() for x in range(9)] for y in range(9)]
@@ -83,6 +84,7 @@ class Field:
         for i in range(len(self.tiles)):
             for x in range(len(self.tiles)):
                 self.addState(self.sudoku, i, x)
+
 
 def writeNumber(i, x):
     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
@@ -394,6 +396,7 @@ while (run):
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             if newFieldButtonRect.collidepoint(pos):
+                screen.fill(WHITE)
                 setNewMap()
             if solveDFSRect.collidepoint(pos):
                 tic = time.perf_counter()
