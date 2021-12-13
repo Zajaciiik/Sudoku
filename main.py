@@ -39,7 +39,7 @@ class Field:
 
     def __init__(self, id):
         self.game = "Sudoku"
-        if id > 9:
+        if id > 10:
             self.sudokuId = 0
         else:
             self.sudokuId = id
@@ -122,7 +122,7 @@ def drawMap():
     screen.blit(writeText('Back'), [13*TILE_SIZE, 7.1*TILE_SIZE])
 
 #PYGAME INIT AND SETTINGS
-field = Field(0)
+field = Field(1)
 run = True
 
 pygame.init()
