@@ -5,6 +5,8 @@ import numpy as np
 from random import randrange
 import time
 
+global POCITADLO
+
 class GameState(Enum):
     PLAYING = None
     SOLVED = None
@@ -84,7 +86,6 @@ class Field:
         for i in range(len(self.tiles)):
             for x in range(len(self.tiles)):
                 self.addState(self.sudoku, i, x)
-
 
 def writeNumber(i, x):
     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
@@ -172,6 +173,7 @@ def isSafe(board, row, column, number):
     return True
 
 def solveBacktrack(board, row, column):
+    global POCITADLO
     endRow = 3
     endColumn = 4
     if (len(field.sudoku) > 4):
@@ -189,6 +191,7 @@ def solveBacktrack(board, row, column):
 
     #prechod na dalsie cislo ak tam uz je nejake zvolene
     if(board.getTile(row,column).getTileState() > 0):
+        POCITADLO += 1
         return solveBacktrack(board, row, column+1)
 
     for number in range(1, endColumn + 1, 1):
@@ -240,6 +243,7 @@ def getNumbers():
     return zoznam
 
 def combineNumbers():
+    global POCITADLO
     for list in itertools.product(*getNumbers()):
         pozicia = 0
         for i in range(len(field.sudoku)):
@@ -247,11 +251,13 @@ def combineNumbers():
                 if(field.getTile(i, x).getTileState() == TileState.NONE):
                     field.sudoku[i][x] = list[pozicia]
                     pozicia += 1
+        POCITADLO += 1
 
         if(isSolved()): 
             for i in range(len(field.sudoku)):
                 for x in range(len(field.sudoku)):
                     field.addState(field.sudoku, i, x)
+            return True
 
 #FORWARD CHECKING
 def isSafeForwardCheck(board, row, column, number):
@@ -357,6 +363,8 @@ def solve(board, row, column):
 
 
 def solveForwardChecking(board, row, column):
+    global POCITADLO
+    POCITADLO += 1
     endRow = 3
     endColumn = 4
     if (len(field.sudoku) > 4):
@@ -399,23 +407,30 @@ while (run):
                 screen.fill(WHITE)
                 setNewMap()
             if solveDFSRect.collidepoint(pos):
+                POCITADLO = 0
                 tic = time.perf_counter()
                 combineNumbers()
                 toc = time.perf_counter()
                 print(f"Downloaded the tutorial in {toc - tic:0.8f} seconds")
+                print("Pocet stavov: ", POCITADLO)
             if solveForwardRect.collidepoint(pos):
+                POCITADLO = 0
                 tic = time.perf_counter()
                 solveForwardChecking(field.sudoku, 0, 0)
                 toc = time.perf_counter()
                 print(f"Downloaded the tutorial in {toc - tic:0.8f} seconds")
+                print("Pocet stavov: ", POCITADLO)
                 for i in range(len(field.sudoku)):
                     for x in range(len(field.sudoku)):
                         field.addState(field.sudoku, i, x)
 
             if solveBacktrackRect.collidepoint(pos):
+                POCITADLO = 0
                 tic = time.perf_counter()
                 solveBacktrack(field, 0, 0)
                 toc = time.perf_counter()
                 print(f"Downloaded the tutorial in {toc - tic:0.8f} seconds")
+                print("Pocet stavov: ", POCITADLO)
+
     drawMap()
     pygame.display.update()
