@@ -49,6 +49,12 @@ class Field:
         else:
             self.tiles = [[Tile() for x in range(9)] for y in range(9)]
         self.__addNumbers()
+        pocet_nul = 0
+        for i in range(len(self.sudoku)):
+            for x in range(len(self.sudoku)):
+                if (self.getTile(i, x).getTileState() == TileState.NONE):
+                    pocet_nul += 1
+        print("Pocet nul na mape:", self.sudokuId + 1, "je :", pocet_nul)
 
     def getTile(self, row, column):
         return self.tiles[row][column]
@@ -402,12 +408,12 @@ while (run):
                 tic = time.perf_counter()
                 combineNumbers()
                 toc = time.perf_counter()
-                print(f"Downloaded the tutorial in {toc - tic:0.8f} seconds")
+                print("Dlzka vypoctu mapy cislo ", field.sudokuId + 1,f" je {toc - tic:0.8f} sekund  s algoritmom Depth First Search")
             if solveForwardRect.collidepoint(pos):
                 tic = time.perf_counter()
                 solveForwardChecking(field.sudoku, 0, 0)
                 toc = time.perf_counter()
-                print(f"Downloaded the tutorial in {toc - tic:0.8f} seconds")
+                print("Dlzka vypoctu mapy cislo ", field.sudokuId + 1,f" je {toc - tic:0.8f} sekund  s algoritmom Forward Checking")
                 for i in range(len(field.sudoku)):
                     for x in range(len(field.sudoku)):
                         field.addState(field.sudoku, i, x)
@@ -416,6 +422,6 @@ while (run):
                 tic = time.perf_counter()
                 solveBacktrack(field, 0, 0)
                 toc = time.perf_counter()
-                print(f"Downloaded the tutorial in {toc - tic:0.8f} seconds")
+                print("Dlzka vypoctu mapy cislo ", field.sudokuId + 1,f" je {toc - tic:0.8f} sekund s algoritmom Backtracking")
     drawMap()
     pygame.display.update()
