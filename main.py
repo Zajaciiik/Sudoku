@@ -1,9 +1,12 @@
 import itertools
-import sys, pygame, json
+import sys, os, json
+import pygame
 from enum import Enum, IntEnum
 import numpy as np
 from random import randrange
 import time
+
+global POCITADLO
 
 class GameState(Enum):
     PLAYING = None
@@ -91,7 +94,6 @@ class Field:
             for x in range(len(self.tiles)):
                 self.addState(self.sudoku, i, x)
 
-
 def writeNumber(i, x):
     font = pygame.font.SysFont('times new roman', int(TILE_SIZE))
     stav = field.getTile(i, x).getTileState()
@@ -108,6 +110,7 @@ def setNewMap():
     field = Field(field.sudokuId + 1)
 
 def drawMap():
+    global rick
     posX = 0
     posY = 0
 
@@ -123,21 +126,31 @@ def drawMap():
         posY = 0
         posX += TILE_SIZE
 
+
     pygame.draw.rect(screen, (200, 100, 100), newFieldButtonRect)
     pygame.draw.rect(screen, (200, 100, 100), solveDFSRect)
     pygame.draw.rect(screen, (200, 100, 100), solveForwardRect)
     pygame.draw.rect(screen, (200, 100, 100), solveBacktrackRect)
+    IMAGE_SMALL = pygame.transform.scale(rickImg, (80, 50))
     
     screen.blit(writeText('Nové pole'), [12*TILE_SIZE, 2*TILE_SIZE])
     screen.blit(writeText('DFS'), [12.6*TILE_SIZE, 4.1*TILE_SIZE])
     screen.blit(writeText('Forward'), [12.4*TILE_SIZE, 5.6*TILE_SIZE])
     screen.blit(writeText('Back'), [13*TILE_SIZE, 7.1*TILE_SIZE])
+    if rick:
+        screen.blit(IMAGE_SMALL, [820, 400])
 
 #PYGAME INIT AND SETTINGS
 field = Field(0)
 run = True
 
 pygame.init()
+pygame.mixer.init()
+sou = 'sound'
+ouch = pygame.mixer.Sound(os.path.join(sou, 'Never gonna give you up.mp3'))
+ouch.set_volume(0.1)
+rickImg = pygame.image.load('rick.png')
+
 WHITE = (255, 255, 255)
 TILE_SIZE = (450 / 9)
 size = width, height = 900, 450
@@ -153,17 +166,14 @@ solveBacktrackRect = pygame.Rect(12.2*TILE_SIZE, 7*TILE_SIZE, 3*TILE_SIZE, TILE_
 
 #BACKTRACKING 
 def isSafe(board, row, column, number):
-    #kontrola ci najdem rovnake cislo v rovnakom riadku
     for x in range(len(field.sudoku)):
         if(board.getTile(row,x).getTileState() == number):
             return False
 
-    #kontrola ci najdem rovnake cislo v rovnakom stlpci, vrati false ak niekde take cislo nasiel
     for x in range(len(field.sudoku)):
         if(board.getTile(x,column).getTileState() == number):
             return False
 
-    #kontrola ci neni to iste cislo v stvorci 3x3
     stvorec = 2
     if (len(field.sudoku) > 4):
         stvorec = 3
@@ -178,33 +188,30 @@ def isSafe(board, row, column, number):
     return True
 
 def solveBacktrack(board, row, column):
+    global POCITADLO
     endRow = 3
     endColumn = 4
     if (len(field.sudoku) > 4):
         endRow = 8
         endColumn = 9
 
-    # pre vyhnutie zlemu backtrackingu
     if (row == endRow and column == endColumn):
         return True
 
-    #prejdenie na dalsi riadok ked dosiahnem posledny stlpec
     if (column == endColumn):
         column = 0
         row += 1
 
-    #prechod na dalsie cislo ak tam uz je nejake zvolene
     if(board.getTile(row,column).getTileState() > 0):
+        POCITADLO += 1
         return solveBacktrack(board, row, column+1)
 
     for number in range(1, endColumn + 1, 1):
         if(isSafe(board, row, column, number)):
             board.getTile(row,column).setTileState(number)
 
-            #skusanie dalsej moznosti
             if(solveBacktrack(board, row, column + 1)):
                 return True
-        #ak take cislo nemoze byt tak tam ide 0
         board.getTile(row,column).setTileState(0)
 
     return False
@@ -246,6 +253,7 @@ def getNumbers():
     return zoznam
 
 def combineNumbers():
+    global POCITADLO
     for list in itertools.product(*getNumbers()):
         pozicia = 0
         for i in range(len(field.sudoku)):
@@ -253,11 +261,13 @@ def combineNumbers():
                 if(field.getTile(i, x).getTileState() == TileState.NONE):
                     field.sudoku[i][x] = list[pozicia]
                     pozicia += 1
+        POCITADLO += 1
 
         if(isSolved()): 
             for i in range(len(field.sudoku)):
                 for x in range(len(field.sudoku)):
                     field.addState(field.sudoku, i, x)
+            return True
 
 #FORWARD CHECKING
 def isSafeForwardCheck(board, row, column, number):
@@ -269,7 +279,6 @@ def isSafeForwardCheck(board, row, column, number):
         if (board[x][column] == number):
             return False
 
-    # kontrola ci neni to iste cislo v stvorci 3x3
     stvorec = 2
     if (len(field.sudoku) > 4):
         stvorec = 3
@@ -363,17 +372,18 @@ def solve(board, row, column):
 
 
 def solveForwardChecking(board, row, column):
+    global POCITADLO
+    POCITADLO += 1
+
     endRow = 3
     endColumn = 4
     if (len(field.sudoku) > 4):
         endRow = 8
         endColumn = 9
 
-    # pre vyhnutie zlemu backtrackingu
     if (row == endRow and column == endColumn):
         return True
 
-    # prejdenie na dalsi riadok ked dosiahnem posledny stlpec
     if (column == endColumn):
         column = 0
         row += 1
@@ -382,6 +392,7 @@ def solveForwardChecking(board, row, column):
         return solve(board, row, column+1)
 
     for number in range(1, endColumn + 1, 1):
+
         if(isSafeForwardCheck(board, row, column, number)):
             board[row][column] = number
 
@@ -394,6 +405,8 @@ def solveForwardChecking(board, row, column):
 # GAME PLAYING
 while (run):
     pygame.time.delay(100)
+    global rick
+    rick = False
 
     for event in pygame.event.get():
         if(event.type == pygame.QUIT):
@@ -404,24 +417,41 @@ while (run):
             if newFieldButtonRect.collidepoint(pos):
                 screen.fill(WHITE)
                 setNewMap()
+                pygame.mixer.Sound.stop(ouch)
+                rick = False
+
             if solveDFSRect.collidepoint(pos):
+                POCITADLO = 0
                 tic = time.perf_counter()
                 combineNumbers()
                 toc = time.perf_counter()
+                print("Pocet stavov: ", POCITADLO)
                 print("Dlzka vypoctu mapy cislo ", field.sudokuId + 1,f" je {toc - tic:0.8f} sekund  s algoritmom Depth First Search")
+                pygame.mixer.Sound.play(ouch)
+                rick = True
+
             if solveForwardRect.collidepoint(pos):
+                POCITADLO = 0
                 tic = time.perf_counter()
                 solveForwardChecking(field.sudoku, 0, 0)
                 toc = time.perf_counter()
+                print("Pocet stavov: ", POCITADLO)
                 print("Dlzka vypoctu mapy cislo ", field.sudokuId + 1,f" je {toc - tic:0.8f} sekund  s algoritmom Forward Checking")
                 for i in range(len(field.sudoku)):
                     for x in range(len(field.sudoku)):
                         field.addState(field.sudoku, i, x)
+                pygame.mixer.Sound.play(ouch)
+                rick = True
 
             if solveBacktrackRect.collidepoint(pos):
+                POCITADLO = 0
                 tic = time.perf_counter()
                 solveBacktrack(field, 0, 0)
                 toc = time.perf_counter()
+                print("Pocet stavov: ", POCITADLO)
                 print("Dlzka vypoctu mapy cislo ", field.sudokuId + 1,f" je {toc - tic:0.8f} sekund s algoritmom Backtracking")
+                pygame.mixer.Sound.play(ouch)
+                rick = True
+
     drawMap()
-    pygame.display.update()
+    pygame.display.update() 
